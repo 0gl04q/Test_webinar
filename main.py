@@ -1,48 +1,55 @@
 import time
-
 from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service
-
+from selenium.webdriver.firefox.service import Service
 from threading import Thread
 
 
-# Функция выполнения программы
-def program(num):
-    options = webdriver.ChromeOptions()  # Создание объекта опций ChromeDriver
-    options.add_argument("--window-size=800,600")  # Установка необходимого разрешения экрана
-    # Установка предпочтений
-    options.add_experimental_option("prefs", {
-        "profile.default_content_setting_values.media_stream_mic": 1,
-        "profile.default_content_setting_values.media_stream_camera": 1,
-        "profile.default_content_setting_values.geolocation": 1,
-        "profile.default_content_setting_values.notifications": 1
-    })
+def program(num, link):
+    # Подключение опций
+    options = Options()
+    options.headless = True
+    options.add_argument('--window-size=800,600')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-gpu')
 
-    service = Service(executable_path="./chromedriver")  # Установка месторасположения ChromeDriver
+    # Разрешение использования микрофона и камеры
+    options.set_preference("permissions.default.microphone", 1)
+    options.set_preference("permissions.default.camera", 1)
 
-    driver = webdriver.Chrome(options=options, service=service)  # Создание объекта driver
+    # Путь к драйверу
+    service = Service(executable_path=r"C:\BotPars\geckodriver.exe")
+    driver = webdriver.Firefox(options=options, service=service)
 
-    driver.get("https://calls.mail.ru/room/d421461f-d9d7-480c-ac19-62533a3f03b5")  # Открытие сайта по ссылке
-    time.sleep(5)
+    # Ссылка на необходимый ресурс
+    driver.get(link)
+    time.sleep(10)
     driver.find_element(By.XPATH, "//html/body/div[3]/div[2]/div/div/div[2]/div/div[4]/div/div/div/input").send_keys(
-        f'Гость {num}')  # Заполнение элемента имени
-    time.sleep(5)
-    # Вход без использования камеры
+        f'Гость {num}')  # Заполнение имени
+    # Вход без использования микрофона и камеры
+    driver.find_element(By.XPATH, "//html/body/div[3]/div[2]/div/div/div[2]/div/label/div").click()
     driver.find_element(By.XPATH, "//html/body/div[3]/div[2]/div/div/div[2]/div/button[2]/span").click()
-    time.sleep(10000)
+    time.sleep(5)
 
 
 if __name__ == '__main__':
-    # Ввод количества одновременно работающих процессов
-    N = int(input('Введите количество единовременных пользователей: '))
+    print('####Программа проверки одновременной работы "Видео звонок" от маил.ру####\n')
+    # Ввод n одновременно работающих процессов
+    n = int(input('Введите количество единовременных пользователей: '))
+
+    # Ввод подходящей ссылки
+    url = ''
+    while url.find('https://calls.mail.ru/room/') < 0:
+        url = input('Введите ссылку на звонок("https://calls.mail.ru/room/d421461f-d9d7-480c-ac19-62533a3f03b5"): ')
+
     thread_list = list()
 
-    # Цикл создания N потоков
-    for i in range(N):
-        t = Thread(name='Test {}'.format(i), target=program, args=(i,))  # Создание объекта потока
+    # Цикл создания n потоков
+    for i in range(n):
+        t = Thread(name='Test {}'.format(i), target=program, args=(i, url,))  # Создание объекта потока
         t.start()  # Запуск потока
-        time.sleep(15)
+        time.sleep(10)
         print(t.name + ' started!')  # Сообщение о потоке
         thread_list.append(t)  # Добавление потока в список
 
