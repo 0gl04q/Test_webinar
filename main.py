@@ -6,7 +6,7 @@ from selenium.webdriver.firefox.service import Service
 from threading import Thread
 
 
-def program(num, link):
+def program(num, link, driver_path):
     # Подключение опций
     options = Options()
     options.headless = True
@@ -19,7 +19,7 @@ def program(num, link):
     options.set_preference("permissions.default.camera", 1)
 
     # Путь к драйверу
-    service = Service(executable_path=r"C:\BotPars\geckodriver.exe")
+    service = Service(executable_path=driver_path)
     driver = webdriver.Firefox(options=options, service=service)
 
     # Ссылка на необходимый ресурс
@@ -43,11 +43,14 @@ if __name__ == '__main__':
     while url.find('https://calls.mail.ru/room/') < 0:
         url = input('Введите ссылку на звонок("https://calls.mail.ru/room/d421461f-d9d7-480c-ac19-62533a3f03b5"): ')
 
-    thread_list = list()
+    # Ввод пути для драйвера
+    dr_path = input(r'Введите путь для драйвера(C:\BotPars\geckodriver.exe): ')
 
     # Цикл создания n потоков
+    thread_list = list()
     for i in range(n):
-        t = Thread(name='Test {}'.format(i), target=program, args=(i, url,))  # Создание объекта потока
+        t = Thread(name='Test {}'.format(i), target=program,
+                   args=(i, url, dr_path,))  # Создание объекта потока
         t.start()  # Запуск потока
         time.sleep(10)
         print(t.name + ' started!')  # Сообщение о потоке
